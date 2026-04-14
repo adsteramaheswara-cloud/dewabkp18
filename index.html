@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Platform video streaming terbaik untuk konten edukasi, tutorial, dan hiburan yang bermanfaat.">
+    <meta name="author" content="TubeStream">
+    <title>TubeStream - Platform Video Streaming Terbaik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        
+        body { 
+            background-color: #060606; 
+            color: #d1d5db;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .thumb-card:hover .thumb-img { transform: scale(1.1); }
+        .thumb-card:hover .play-overlay { opacity: 1; }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            display: box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .glass-header {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .thumb-img { transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1); }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Mobile menu styles */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 280px;
+            height: 100vh;
+            background: #0a0a0a;
+            z-index: 100;
+            transition: left 0.3s ease;
+            padding: 80px 20px 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .mobile-menu.open { left: 0; }
+        .mobile-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .mobile-overlay.open { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 768px) {
+            .header-search { display: none; }
+            .header-search.active { display: block; position: absolute; top: 56px; left: 0; right: 0; padding: 10px 16px; background: #0a0a0a; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        }
+    </style>
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <div style="display:none;">
+        <a href="/" target="_blank"><img src="//sstatic1.histats.com/0.gif?5012217&101" alt="stats"></a>
+    </div>
+
+    <header class="glass-header sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto px-4 lg:px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="menu-toggle" class="xl:hidden text-gray-400 hover:text-white p-2">
+                    <i class="fa fa-bars text-lg"></i>
+                </button>
+                <a href="/" class="text-xl font-black text-white italic tracking-tighter flex items-center">
+                    <span class="text-blue-500">Tube</span><span class="text-white">Stream</span>
+                </a>
+            </div>
+            
+            <nav class="hidden xl:flex gap-6 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                <a href="/" class="hover:text-blue-400 transition">Terbaru</a>
+                <a href="/" class="hover:text-blue-400 transition">Populer</a>
+					<a href="/" class="hover:text-blue-400 transition">Tutorial</a>
+					<a href="/" class="hover:text-blue-400 transition">Edukasi</a>
+                    <a href="/" class="hover:text-blue-400 transition text-blue-300">Join Telegram</a>
+            </nav>
+            
+            <div class="flex items-center gap-2">
+                <button id="search-toggle" class="md:hidden text-gray-400 hover:text-white p-2">
+                    <i class="fa fa-search text-lg"></i>
+                </button>
+                <div class="header-search flex-1 max-w-md mx-4">
+                    <form action="/search" method="GET" class="relative group">
+                        <input type="text" name="q" placeholder="Cari kode atau judul..." 
+                               class="w-full bg-[#181818] border border-gray-800 rounded-md py-1.5 px-4 text-xs focus:outline-none focus:border-blue-500 transition-all text-white">
+                        <button type="submit" class="absolute right-3 top-2 text-gray-500 group-hover:text-blue-400">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-[11px] font-bold transition hidden sm:block">MASUK</button>
+                <button class="sm:hidden bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-[11px] font-bold transition">MASUK</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-overlay" class="mobile-overlay"></div>
+    <nav id="mobile-menu" class="mobile-menu">
+        <div class="flex flex-col gap-4">
+            <a href="/" class="text-lg font-bold text-white hover:text-blue-400 transition py-2 border-b border-gray-800">Terbaru</a>
+            <a href="/" class="text-lg font-bold text-white hover:text-blue-400 transition py-2 border-b border-gray-800">Populer</a>
+            <a href="/" class="text-lg font-bold text-white hover:text-blue-400 transition py-2 border-b border-gray-800">Tutorial</a>
+            <a href="/" class="text-lg font-bold text-white hover:text-blue-400 transition py-2 border-b border-gray-800">Edukasi</a>
+            <a href="/" class="text-lg font-bold text-blue-300 hover:text-blue-400 transition py-2 border-b border-gray-800">Join Telegram</a>
+        </div>
+    </nav>
+
+    <main class="max-w-[1600px] mx-auto p-4 lg:p-6 flex-grow w-full">
+        
+        <section class="flex items-center gap-2 mb-8 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
+            <a href="#" class="bg-blue-600 text-white px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider">Semua</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Tutorial</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Edukasi</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Teknologi</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Musik</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Gaming</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Olahraga</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Berita</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Hiburan</a>
+            <a href="#" class="bg-[#1a1a1a] hover:bg-gray-800 text-gray-400 px-4 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition">Sains</a>
+        </section>
+
+        <section class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-5">
+            <script>
+                const videos = [
+                    { id: "WEB-001", title: "Tutorial Web Development Lengkap untuk Pemula - HTML, CSS, JavaScript", dur: "45:30", link: "#", img: "https://picsum.photos/seed/web1/320/180.jpg" },
+                    { id: "PY-002", title: "Belajar Python Programming dari Dasar hingga Mahir", dur: "38:15", link: "#", img: "https://picsum.photos/seed/py1/320/180.jpg" },
+                    { id: "MATH-003", title: "Matematika Dasar untuk Teknik - Kalkulus dan Aljabar", dur: "52:20", link: "#", img: "https://picsum.photos/seed/math1/320/180.jpg" },
+                    { id: "SCI-004", title: "Fisika Modern - Teori Relativitas dan Kuantum", dur: "61:10", link: "#", img: "https://picsum.photos/seed/phys1/320/180.jpg" },
+                    { id: "HIST-005", title: "Sejarah Indonesia - Perjuangan Kemerdekaan", dur: "55:45", link: "#", img: "https://picsum.photos/seed/hist1/320/180.jpg" },
+                    { id: "ENG-006", title: "Belajar Bahasa Inggris - Speaking dan Listening", dur: "42:00", link: "#", img: "https://picsum.photos/seed/eng1/320/180.jpg" },
+                    { id: "BIO-007", title: "Biologi - Sel dan Struktur Organisme", dur: "48:30", link: "#", img: "https://picsum.photos/seed/bio1/320/180.jpg" },
+                    { id: "CHEM-008", title: "Kimia Dasar - Reaksi dan Periodik", dur: "51:15", link: "#", img: "https://picsum.photos/seed/chem1/320/180.jpg" },
+                    { id: "ART-009", title: "Seni Budaya Indonesia - Batik dan Wayang", dur: "35:20", link: "#", img: "https://picsum.photos/seed/art1/320/180.jpg" },
+                    { id: "MUSIC-010", title: "Teori Musik Dasar - Notasi dan Harmoni", dur: "40:50", link: "#", img: "https://picsum.photos/seed/music1/320/180.jpg" }
+                ];
+
+                videos.forEach((v) => {
+                    document.write(`
+                        <article class="group flex flex-col">
+                            <a href="${v.link}" class="relative thumb-card overflow-hidden rounded bg-[#111] aspect-video">
+                                <div class="absolute top-1.5 left-1.5 z-10 bg-blue-600 text-white text-[9px] px-1.5 py-0.5 rounded font-black uppercase shadow-lg">${v.id}</div>
+                                <img src="${v.img}" alt="${v.title}" loading="lazy" referrerpolicy="no-referrer" class="thumb-img w-full h-full object-cover">
+                                <div class="play-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-300">
+                                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30">
+                                        <i class="fa fa-play text-white text-sm ml-1"></i>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">${v.dur}</div>
+                            </a>
+
+                            <div class="mt-2">
+                                <a href="#" 
+                                   class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
+                                   <i class="fa fa-play-circle animate-pulse"></i> TONTON SEKARANG
+                                </a>
+                            </div>
+
+                            <div class="mt-2 px-0.5">
+                                <a href="${v.link}">
+                                    <h3 class="text-gray-200 font-semibold text-[12px] leading-snug line-clamp-2 group-hover:text-blue-400 transition-colors">
+                                        ${v.title}
+                                    </h3>
+                                </a>
+                                <div class="flex items-center gap-2 mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-tighter">
+                                    <span class="text-blue-500">${v.id}</span>
+                                    <span>•</span>
+                                    <span>Baru Saja</span>
+                                </div>
+                            </div>
+                        </article>
+                    `);
+                });
+            </script>
+        </section>
+    </main>
+
+    <footer class="bg-[#0a0a0a] border-t border-white/5 py-12 mt-12">
+        <div class="max-w-[1600px] mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center md:text-left">
+                <div>
+                    <p class="text-xl font-black text-white italic mb-4">Tube<span class="text-blue-500">Stream</span></p>
+                    <p class="text-gray-600 text-[10px] uppercase font-bold tracking-widest leading-loose">
+                        Platform video streaming terbaik untuk konten edukasi, tutorial, dan hiburan yang bermanfaat.
+                    </p>
+                </div>
+                <div class="flex flex-col gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                    <p class="text-gray-300 mb-2">Informasi</p>
+                    <a href="#" class="hover:text-white transition">Tentang Kami</a>
+                    <a href="#" class="hover:text-white transition">Kebijakan Privasi</a>
+                    <a href="#" class="hover:text-white transition">Syarat Layanan</a>
+                </div>
+                <div class="flex flex-col gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                    <p class="text-gray-300 mb-2">Hubungi Kami</p>
+                    <a href="#" class="hover:text-white transition">Kontak Media</a>
+                    <a href="#" class="hover:text-white transition text-blue-500 underline">Pemasangan Iklan</a>
+                    <div class="mt-4 flex justify-center md:justify-start gap-4 text-lg">
+                        <i class="fa-brands fa-twitter hover:text-white cursor-pointer"></i>
+                        <i class="fa-brands fa-telegram hover:text-white cursor-pointer"></i>
+                        <i class="fa-brands fa-instagram hover:text-white cursor-pointer"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 text-center border-t border-white/5 pt-8">
+                <p class="text-[10px] text-gray-700 uppercase tracking-tighter">© 2026 TubeStream Media - All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+<div id="promo-toast" class="toast-wrapper">
+    <a id="toast-link" href="#" target="_blank" style="text-decoration: none; color: inherit; display: block;">
+        <div class="toast-content">
+            <div class="toast-thumb-container">
+                <img id="toast-img" src="" alt="Promo">
+                <span class="notification-badge">1</span>
+            </div>
+            
+            <div class="toast-body">
+                <div class="toast-meta">Baru saja &bull; Terpopuler</div>
+                <h4 id="toast-title" class="toast-title"></h4>
+                <p id="toast-desc" class="toast-desc"></p>
+                <div class="toast-action-row">
+                    <span class="toast-btn-shiny">LIHAT TUTORIAL &raquo;</span>
+                </div>
+            </div>
+        </div>
+    </a>
+    <button type="button" onclick="tutupNotif()" class="toast-close" title="Tutup">&times;</button>
+</div>
+
+<style>
+    .toast-wrapper {
+        position: fixed;
+        bottom: 30px;
+        right: -450px; 
+        width: 350px;
+        z-index: 9999999;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .toast-wrapper.muncul { right: 20px; }
+
+    .toast-content {
+        display: flex;
+        align-items: flex-start;
+        background: #ffffff;
+        padding: 16px;
+        border-radius: 18px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        border: 1px solid #f0f0f0;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .toast-thumb-container img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; }
+
+    .notification-badge {
+        position: absolute; top: -5px; right: -5px; background: #3b82f6; color: white;
+        font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; border: 2px solid #fff;
+    }
+
+    .toast-body { flex-grow: 1; padding-left: 14px; padding-right: 15px; }
+    .toast-meta { font-size: 10px; color: #888; font-weight: 600; margin-bottom: 4px; }
+    .toast-title { margin: 0; font-size: 15px; font-weight: 800; color: #1a1a1a; line-height: 1.2; }
+    .toast-desc { margin: 4px 0 10px 0; font-size: 12px; color: #444; line-height: 1.4; }
+    .toast-btn-shiny { font-size: 12px; color: #007bff; font-weight: 700; text-transform: uppercase; }
+
+    .toast-close {
+        position: absolute; top: 12px; right: 12px; background: #eee; border: none;
+        width: 24px; height: 24px; border-radius: 50%; cursor: pointer; color: #666;
+        display: flex; align-items: center; justify-content: center; font-size: 16px;
+        z-index: 10000000; /* Harus lebih tinggi dari link */
+    }
+
+    @media (max-width: 480px) {
+        .toast-wrapper { width: 92%; left: 4%; right: 4%; }
+        .toast-wrapper.muncul { bottom: 20px; }
+    }
+</style>
+
+<script>
+    // Mobile Menu Toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileOverlay = document.getElementById('mobile-overlay');
+
+    menuToggle.addEventListener('click', () => {
+        mobileMenu.classList.toggle('open');
+        mobileOverlay.classList.toggle('open');
+    });
+
+    mobileOverlay.addEventListener('click', () => {
+        mobileMenu.classList.remove('open');
+        mobileOverlay.classList.remove('open');
+    });
+
+    // Search Toggle for Mobile
+    const searchToggle = document.getElementById('search-toggle');
+    const headerSearch = document.querySelector('.header-search');
+
+    searchToggle.addEventListener('click', () => {
+        headerSearch.classList.toggle('active');
+    });
+
+    // Promo Toast
+    const dataPromo = [
+        {
+            title: "Tutorial React Native - Membuat Aplikasi Mobile Cross-Platform",
+            desc: "Pelajari cara membuat aplikasi mobile yang berjalan di iOS dan Android dengan React Native",
+            img: "https://picsum.photos/seed/promo1/60/60.jpg", 
+            link: "#"
+        },
+        {
+            title: "Belajar Machine Learning dengan Python",
+            desc: "Panduan lengkap machine learning untuk pemula menggunakan Python dan scikit-learn",
+            img: "https://picsum.photos/seed/promo2/60/60.jpg",
+            link: "#"
+        },
+        {
+            title: "Tutorial UI/UX Design untuk Website Modern",
+            desc: "Pelajari prinsip desain UI/UX dan buat website yang user-friendly dan menarik",
+            img: "https://picsum.photos/seed/promo3/60/60.jpg",
+            link: "#"
+        }
+    ];
+
+    let currentIdx = 0;
+    const toastWrapper = document.getElementById('promo-toast');
+    const toastLink = document.getElementById('toast-link');
+
+    function startPromo() {
+        if (currentIdx >= dataPromo.length) return;
+
+        // Update Konten
+        document.getElementById('toast-title').innerText = dataPromo[currentIdx].title;
+        document.getElementById('toast-desc').innerText = dataPromo[currentIdx].desc;
+        document.getElementById('toast-img').src = dataPromo[currentIdx].img;
+        
+        // Update Link secara eksplisit
+        toastLink.setAttribute('href', dataPromo[currentIdx].link);
+
+        // Tampilkan
+        toastWrapper.classList.add('muncul');
+
+        // Durasi tampil
+        setTimeout(() => {
+            if(toastWrapper.classList.contains('muncul')) {
+                toastWrapper.classList.remove('muncul');
+                setTimeout(() => {
+                    currentIdx++;
+                    startPromo();
+                }, 600);
+            }
+        }, 7000);
+    }
+
+    function tutupNotif() {
+        toastWrapper.classList.remove('muncul');
+        currentIdx = 999; // Stop antrian
+    }
+
+    // Jalankan segera
+    startPromo();
+</script>
+</body>
+</html>
